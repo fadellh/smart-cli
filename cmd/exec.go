@@ -7,6 +7,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/fadellh/smart-cli/usecase"
 	"github.com/spf13/cobra"
 )
 
@@ -16,7 +17,14 @@ var execCmd = &cobra.Command{
 	Short: "exec blockchain configuration",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("exec called")
+
+		fv := usecase.ChooseFabricVersion()
+
+		global := Global{
+			FabricVersion: fv,
+			Tls:           true,
+		}
+		fmt.Println(global)
 	},
 }
 
