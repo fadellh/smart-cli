@@ -5,7 +5,10 @@ Copyright © 2022 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
 
 	"github.com/fadellh/smart-cli/usecase"
 	"github.com/spf13/cobra"
@@ -20,10 +23,15 @@ var execCmd = &cobra.Command{
 
 		fmt.Println("[Plese choose Fabric version]")
 		fv := usecase.ChooseFabricVersion()
+
 		fmt.Println("[Plese choose Monitoring Log]")
 		log := usecase.ChooseMonitorLog()
+
+		dataOrg := usecase.DataOrg()
+
 		fmt.Println("[Plese Add Organization inside channel]")
-		channels := usecase.AddMultipleOrgsInChannel()
+		channels := usecase.AddMultipleOrgsInChannel(dataOrg)
+
 		fmt.Println("[Plese Add Chaincode]")
 		chainCodes := usecase.AddMultipleChainCode(channels)
 
@@ -33,10 +41,28 @@ var execCmd = &cobra.Command{
 			Monitoring: Monitoring{
 				LogLevel: log,
 			},
+		}
+		rawDataOrg := json.RawMessage(dataOrg)
+		smr := SmartSample{
+			Schema:     "https://github.com/hyperledger/releases/download/1.1.0/schema.json",
+			Global:     global,
+			Orgs:       rawDataOrg,
 			Channels:   channels,
 			ChainCodes: chainCodes,
 		}
-		fmt.Println(global)
+
+		smrJson, err := json.MarshalIndent(smr, "", " ")
+		if err != nil {
+			fmt.Printf("Failed %v\n", err)
+			os.Exit(1)
+		}
+
+		fmt.Println("-->[Generate blockchain configuration]")
+		err = ioutil.WriteFile("sample.json", smrJson, 0644)
+		if err != nil {
+			fmt.Printf("Failed %v\n", err)
+			os.Exit(1)
+		}
 	},
 }
 

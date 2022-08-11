@@ -7,17 +7,17 @@ import (
 )
 
 type SmartSample struct {
-	Schema string          `json:"$schema"`
-	Global Global          `json:"global"`
-	Orgs   json.RawMessage `json:"orgs"`
+	Schema     string              `json:"$schema"`
+	Global     Global              `json:"global"`
+	Orgs       json.RawMessage     `json:"orgs"`
+	Channels   []usecase.Channel   `json:"channels"`
+	ChainCodes []usecase.ChainCode `json:"chaincodes"`
 }
 
 type Global struct {
-	FabricVersion string              `json:"fabricVersion"`
-	Tls           bool                `json:"tls"`
-	Monitoring    Monitoring          `json:"monitoring"`
-	Channels      []usecase.Channel   `json:"channels"`
-	ChainCodes    []usecase.ChainCode `json:"chaincodes"`
+	FabricVersion string     `json:"fabricVersion"`
+	Tls           bool       `json:"tls"`
+	Monitoring    Monitoring `json:"monitoring"`
 }
 type Monitoring struct {
 	LogLevel string `json:"loglevel"`
