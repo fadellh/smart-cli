@@ -20,6 +20,7 @@ var execCmd = &cobra.Command{
 
 		fv := usecase.ChooseFabricVersion()
 		log := usecase.ChooseMonitorLog()
+		channels := usecase.AddMultipleOrgsInChannel()
 
 		global := Global{
 			FabricVersion: fv,
@@ -27,6 +28,7 @@ var execCmd = &cobra.Command{
 			Monitoring: Monitoring{
 				LogLevel: log,
 			},
+			Channels: channels,
 		}
 		fmt.Println(global)
 	},
