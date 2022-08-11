@@ -19,13 +19,23 @@ type Organization struct {
 }
 
 type Channel struct {
-	Name string     `json:"channel"`
-	Org  ChannelOrg `json:"orgs"`
+	Name string       `json:"channel"`
+	Org  []ChannelOrg `json:"orgs"`
 }
 
 type ChannelOrg struct {
 	Name  string   `json:"name"`
 	Peers []string `json:"peers"`
+}
+
+type ChainCode struct {
+	Name        string `json:"name"`
+	Version     string `json:"version"`
+	Lang        string `json:"lang"`
+	Channel     string `json:"channel"`
+	Init        string `json:"init"`
+	Endorsement string `json:"endorsement"`
+	Directory   string `json:"directory"`
 }
 
 func ChooseFabricVersion() string {
@@ -108,28 +118,40 @@ func AddMultipleOrgsInChannel() []Channel {
 	}
 
 	idx := 0
-	var result string
 	var err error
-	items = append(items, "exit")
 
-	channels := []Channel{}
+	channelOrgs := []ChannelOrg{}
 
 	for {
 		prompt := promptui.Select{
 			Label: "Please choose organization",
 			Items: items,
 		}
-		idx, result, err = prompt.Run()
-		if idx == len(items)-1 {
+		_, res, err := prompt.Run()
+		if err != nil {
 			break
 		}
-		ch := Channel{
-			Name: "my-channel-1",
-			Org: ChannelOrg{
-				Name: orgs[idx].Organization.Name,
-			},
+		if res == "exit" {
+			break
 		}
-		channels = append(channels, ch)
+		chOrg := ChannelOrg{
+			Name: orgs[idx].Organization.Name,
+		}
+		channelOrgs = append(channelOrgs, chOrg)
+
+		pContinue := promptui.Select{
+			Label: "Do you want add more?",
+			Items: []string{"yes", "no"},
+		}
+		idx, _, err := pContinue.Run()
+		if err != nil {
+			break
+		}
+
+		if idx == 1 {
+			break
+		}
+
 	}
 
 	if err != nil {
@@ -137,7 +159,83 @@ func AddMultipleOrgsInChannel() []Channel {
 		return nil
 	}
 
-	fmt.Printf("You choose %q\n", result)
+	return []Channel{
+		{Name: "channel-1",
+			Org: channelOrgs,
+		},
+	}
+}
 
-	return channels
+func AddMultipleChainCode(ch []Channel) []ChainCode {
+	chCodes := []ChainCode{}
+	chItems := []string{}
+	var err error
+
+	for _, v := range ch {
+		chItems = append(chItems, v.Name)
+	}
+	for {
+		pName := promptui.Prompt{
+			Label: "Input chaincode name",
+		}
+		pVersion := promptui.Prompt{
+			Label: "Input chaincode version",
+		}
+		pLang := promptui.Prompt{
+			Label: "Input chaincode languange",
+		}
+
+		name, err := pName.Run()
+		if err != nil {
+			break
+		}
+		version, err := pVersion.Run()
+		if err != nil {
+			break
+		}
+		lang, err := pLang.Run()
+		if err != nil {
+			break
+		}
+		pChannel := promptui.Select{
+			Label: "Choose your channel?",
+			Items: chItems,
+		}
+		_, channel, err := pChannel.Run()
+		if err != nil {
+			break
+		}
+
+		code := ChainCode{
+			Name:        name,
+			Version:     version,
+			Lang:        lang,
+			Channel:     channel,
+			Init:        "{\"Args\":[]}",
+			Endorsement: "AND ('Org1MSP.member')",
+			Directory:   "",
+		}
+		chCodes = append(chCodes, code)
+
+		pContinue := promptui.Select{
+			Label: "Do you want add more?",
+			Items: []string{"yes", "no"},
+		}
+		idx, _, err := pContinue.Run()
+		if err != nil {
+			break
+		}
+
+		if idx == 1 {
+			break
+		}
+
+	}
+
+	if err != nil {
+		fmt.Printf("Prompt failed %v\n", err)
+		return nil
+	}
+
+	return chCodes
 }

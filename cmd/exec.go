@@ -18,9 +18,14 @@ var execCmd = &cobra.Command{
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 
+		fmt.Println("[Plese choose Fabric version]")
 		fv := usecase.ChooseFabricVersion()
+		fmt.Println("[Plese choose Monitoring Log]")
 		log := usecase.ChooseMonitorLog()
+		fmt.Println("[Plese Add Organization inside channel]")
 		channels := usecase.AddMultipleOrgsInChannel()
+		fmt.Println("[Plese Add Chaincode]")
+		chainCodes := usecase.AddMultipleChainCode(channels)
 
 		global := Global{
 			FabricVersion: fv,
@@ -28,7 +33,8 @@ var execCmd = &cobra.Command{
 			Monitoring: Monitoring{
 				LogLevel: log,
 			},
-			Channels: channels,
+			Channels:   channels,
+			ChainCodes: chainCodes,
 		}
 		fmt.Println(global)
 	},
