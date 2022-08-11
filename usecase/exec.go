@@ -72,40 +72,43 @@ func ChooseMonitorLog() string {
 	return result
 }
 
-func AddMultipleOrgsInChannel() []Channel {
+func DataOrg() (dataOrg []byte) {
 	//Assume organation retrieve from another source because this have random field. It can be document database or call API
-	dataOrg := []byte(`[
+	dataOrg = []byte(`[
+	{
+	  "organization": {
+		"name": "Orderer",
+		"domain": "orderer.example.com"
+	  },
+	  "orderers": [
 		{
-		  "organization": {
-			"name": "Orderer",
-			"domain": "orderer.example.com"
-		  },
-		  "orderers": [
-			{
-			  "groupName": "group1",
-			  "prefix": "orderer",
-			  "type": "raft",
-			  "instances": 1
-			}
-		  ]
-		},
-		{
-		  "organization": {
-			"name": "Org1",
-			"mspName": "Org1MSP",
-			"domain": "org1.example.com"
-		  },
-		  "ca": {
-			"prefix": "ca"
-		  },
-		  "peer": {
-			"prefix": "peer",
-			"instances": 2,
-			"db": "LevelDb"
-		  }
+		  "groupName": "group1",
+		  "prefix": "orderer",
+		  "type": "raft",
+		  "instances": 1
 		}
-	  ]`)
+	  ]
+	},
+	{
+	  "organization": {
+		"name": "Org1",
+		"mspName": "Org1MSP",
+		"domain": "org1.example.com"
+	  },
+	  "ca": {
+		"prefix": "ca"
+	  },
+	  "peer": {
+		"prefix": "peer",
+		"instances": 2,
+		"db": "LevelDb"
+	  }
+	}
+  ]`)
+	return
+}
 
+func AddMultipleOrgsInChannel(dataOrg []byte) []Channel {
 	orgs := []Orgs{}
 	if err := json.Unmarshal([]byte(dataOrg), &orgs); err != nil {
 		panic(err)
@@ -117,7 +120,6 @@ func AddMultipleOrgsInChannel() []Channel {
 		items = append(items, v.Organization.Name)
 	}
 
-	idx := 0
 	var err error
 
 	channelOrgs := []ChannelOrg{}
@@ -127,7 +129,7 @@ func AddMultipleOrgsInChannel() []Channel {
 			Label: "Please choose organization",
 			Items: items,
 		}
-		_, res, err := prompt.Run()
+		idx, res, err := prompt.Run()
 		if err != nil {
 			break
 		}
@@ -140,10 +142,10 @@ func AddMultipleOrgsInChannel() []Channel {
 		channelOrgs = append(channelOrgs, chOrg)
 
 		pContinue := promptui.Select{
-			Label: "Do you want add more?",
+			Label: "Do you want add more organization?",
 			Items: []string{"yes", "no"},
 		}
-		idx, _, err := pContinue.Run()
+		idx, _, err = pContinue.Run()
 		if err != nil {
 			break
 		}
@@ -184,19 +186,31 @@ func AddMultipleChainCode(ch []Channel) []ChainCode {
 		pLang := promptui.Prompt{
 			Label: "Input chaincode languange",
 		}
+		var name string
+		var version string
+		var lang string
 
-		name, err := pName.Run()
-		if err != nil {
-			break
+		for name == "" {
+			name, err = pName.Run()
+			if err != nil {
+				break
+			}
 		}
-		version, err := pVersion.Run()
-		if err != nil {
-			break
+
+		for version == "" {
+			version, err = pVersion.Run()
+			if err != nil {
+				break
+			}
 		}
-		lang, err := pLang.Run()
-		if err != nil {
-			break
+
+		for lang == "" {
+			lang, err = pLang.Run()
+			if err != nil {
+				break
+			}
 		}
+
 		pChannel := promptui.Select{
 			Label: "Choose your channel?",
 			Items: chItems,
@@ -218,7 +232,7 @@ func AddMultipleChainCode(ch []Channel) []ChainCode {
 		chCodes = append(chCodes, code)
 
 		pContinue := promptui.Select{
-			Label: "Do you want add more?",
+			Label: "Do you want add more chaincode?",
 			Items: []string{"yes", "no"},
 		}
 		idx, _, err := pContinue.Run()
