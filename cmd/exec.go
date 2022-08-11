@@ -19,10 +19,14 @@ var execCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		fv := usecase.ChooseFabricVersion()
+		log := usecase.ChooseMonitorLog()
 
 		global := Global{
 			FabricVersion: fv,
 			Tls:           true,
+			Monitoring: Monitoring{
+				LogLevel: log,
+			},
 		}
 		fmt.Println(global)
 	},
